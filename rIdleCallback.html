@@ -1,0 +1,55 @@
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Requst Idel Callback Demo</title>
+</head>
+
+<body>
+  <div id="progress-bar" style="background: lightblue; width: 0px;height: 20px;"></div>
+  <button id="btn-start">start</button>
+  <script>
+    function sleep(delay) {
+      for (let start = Date.now(); Date.now() - start <= delay;);
+    }
+    const works = [
+      () => {
+        console.log('work 1 is started');
+        sleep(20);  // > 16.66ms
+        console.log('work 1 is done');
+      },
+      () => {
+        console.log('work 2 is started');
+        sleep(20);
+        console.log('work 2 is done');
+      }
+      , () => {
+        console.log('work 3 is started');
+        sleep(20);
+        console.log('work 3 is done');
+      }
+    ]
+
+    requestIdleCallback(workLoop, { timeout: 1000 })
+
+    // browser call workLoop and pass in deadline
+    function workLoop(deadline) {
+      while((deadline.timeRemaining() > 0 || deadline.didTimeout) && works.length > 0)
+      {
+        performWork();
+      }
+
+      if(works.length > 0)
+      { // waiting for next idle
+        requestIdleCallback(workLoop, { timeout: 1000 })
+      }
+    }
+
+    function performWork() {
+      works.shift()();   // run the first work
+    }
+  </script>
+</body>
+
+</html>
